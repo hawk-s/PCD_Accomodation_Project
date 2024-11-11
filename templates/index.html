@@ -3,40 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourism Data Visualization</title>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        .select2-container {
-            width: 200px !important;
-        }
-    </style>
+    <title>Tourism Data Visualizations</title>
 </head>
 <body>
-    <h1>Tourism Data Visualization</h1>
-
-    <form method="POST">
-        <label for="country">Select Country:</label>
-        <select name="country" id="country" style="width:200px;">
-            {% for country in countries %}
-                <option value="{{ country }}" {% if selected_country == country %}selected{% endif %}>{{ country }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Update</button>
-    </form>
-
-    <h2>Monthly Trends for {{ selected_country }}</h2>
-    <img src="data:image/png;base64,{{ plot_img }}" alt="Monthly Trends Plot">
-
-    <!-- Select2 JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#country').select2({
-                placeholder: "Select a country",
-                allowClear: true
-            });
-        });
-    </script>
+    <h1>Welcome to the Tourism Data Visualizations</h1>
+    <p>Select a visualization to explore:</p>
+    <ul>
+        <li><a href="{{ url_for('line_chart') }}">Country Comparison Line Chart</a></li>
+        <li><a href="{{ url_for('trends_chart') }}">Monthly Trends for a Single Country</a></li>
+    </ul>
 </body>
 </html>

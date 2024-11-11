@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Comparison Line Chart</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <h1>Country Comparison Line Chart</h1>
+
+    <form method="POST">
+        <label for="country">Select Countries:</label>
+        <select name="country" id="country" multiple="multiple" style="width:200px;">
+            {% for country in countries %}
+                <option value="{{ country }}" {% if country in selected_countries %}selected{% endif %}>
+                    {{ country }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Update</button>
+    </form>
+
+    <img src="data:image/png;base64,{{ plot_img }}" alt="Country Comparison Line Chart">
+
+    <!-- JavaScript for Select2 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#country').select2({
+                placeholder: "Select countries",
+                allowClear: true
+            });
+        });
+    </script>
+</body>
+</html>
