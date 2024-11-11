@@ -17,7 +17,7 @@ country_data = tourism_data[tourism_data['geo\\TIME_PERIOD'].str.len() == 2]
 # Extract unique country codes from the dataset
 unique_countries = country_data['geo\\TIME_PERIOD'].unique()
 
-# Function to generate line chart for multiple countries
+# Function to generate combined chart for multiple countries and/or years
 def generate_combined_chart(selected_countries, selected_years):
     # Filter data for the selected countries and years
     data_selected = country_data[country_data['geo\\TIME_PERIOD'].isin(selected_countries)]
@@ -37,7 +37,25 @@ def generate_combined_chart(selected_countries, selected_years):
 
     # Create the plot
     plt.figure(figsize=(14, 7))
-    sns.lineplot(x='month', y='Value', hue='geo\\TIME_PERIOD', style='Year', data=data_long, marker="o")
+
+    # Base colors (purple and orange)
+    base_colors = ['#800080', '#FFA500']
+    
+    # Generate additional colors if needed
+    num_additional_colors = len(selected_countries) - len(base_colors)
+    additional_colors = sns.color_palette("Set2", num_additional_colors)  # "Set2" is a palette with distinct colors
+
+    # Combine base colors with the additional ones
+    colors = base_colors + additional_colors
+
+    # Ensure that the number of colors matches the number of selected countries
+    if len(colors) < len(selected_countries):
+        colors += sns.color_palette("Set3", len(selected_countries) - len(colors))  # Add more if necessary
+
+    # Use the generated colors for the plot
+    sns.lineplot(x='month', y='Value', hue='geo\\TIME_PERIOD', style='Year', data=data_long, marker="o", palette=colors)
+    
+    # Add title and labels
     plt.title("Monthly Trends for Selected Countries and Years")
     plt.xlabel("Month")
     plt.ylabel("Value")

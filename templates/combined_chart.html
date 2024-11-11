@@ -9,6 +9,11 @@
 <body>
     <h1>Combined Country and Year Selection Chart</h1>
 
+    <!-- Back Button -->
+    <a href="{{ url_for('index') }}">
+        <button>Back to Main Navigation</button>
+    </a>
+
     <form method="POST">
         <label for="country">Select Countries:</label>
         <select name="country" id="country" multiple="multiple" style="width:200px;">
