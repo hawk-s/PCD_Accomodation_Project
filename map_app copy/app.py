@@ -62,11 +62,20 @@ transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 
 
 def get_geojson_data(dataset, year, month):
-    combined = pd.concat(dataset.values(), ignore_index=True)
+    if isinstance(dataset, dict):
+        combined = pd.concat(dataset.values(), ignore_index=True)
+    else:
+        combined = dataset  # If dataset is already a DataFrame
+
     combined['month'] = pd.to_datetime(combined['month'], errors='coerce')
     combined['year'] = combined['month'].dt.year
     combined['month_name'] = combined['month'].dt.strftime('%B')
-    filtered = combined[(combined['year'] == year) & (combined['month_name'] == month)]
+
+    if month.lower() == "total":  # Handle annual data
+        filtered = combined[combined['year'] == year]
+    else:  # Handle monthly data
+        filtered = combined[(combined['year'] == year) & (combined['month_name'] == month)]
+
     filtered = filtered[filtered["GEO"].str.len() > 2]
     filtered = filtered[~filtered["GEO"].isin(["EU27_2020"])]
 
@@ -77,12 +86,14 @@ def get_geojson_data(dataset, year, month):
             geometry = shape(geo_data["geometry"])
             if geometry.is_valid:
                 centroid = geometry.centroid
-                # Transform coordinates from EPSG:3857 to EPSG:4326
                 lon, lat = transformer.transform(centroid.x, centroid.y)
-                print(f"EPSG:3857 (X, Y): ({centroid.x}, {centroid.y}), EPSG:4326 (Lon, Lat): ({lon}, {lat})")
+                region_name = geo_data['properties'].get('NUTS_NAME', 'Unknown Region')
                 geojson_features.append({
                     "type": "Feature",
-                    "properties": {"region": row["GEO"], "value": row["bookings"]},
+                    "properties": {
+                        "region": region_name,
+                        "value": row["bookings"]
+                    },
                     "geometry": {"type": "Point", "coordinates": [lon, lat]}
                 })
         else:
@@ -95,20 +106,49 @@ def get_geojson_data(dataset, year, month):
 
 
 
+
+
 # --- ROUTES ---
 @app.route('/')
 def index():
-    geojson_data = get_geojson_data(stay_data, 2021, 'January')
-    return render_template('index.html', geojson_data=geojson_data)
+    return render_template('index.html')  # Remove hardcoded geojson_data
 
-@app.route('/data/<metric>/<year>/<month>')
-def get_data(metric, year, month):
-    dataset = {"stays": stay_data, "length_of_stay": length_of_stay_data, "nights_spent": nights_spend_data}.get(metric)
-    if not dataset:
+
+@app.route('/data/<metric>/<year>/<month>/<category>')
+def get_data(metric, year, month, category):
+    dataset_map = {
+        "stays": stay_data,
+        "length_of_stay": length_of_stay_data,
+        "nights_spent": nights_spend_data
+    }
+    dataset_group = dataset_map.get(metric)
+
+    if not dataset_group:
         print(f"Invalid metric: {metric}")
         return jsonify({"error": "Invalid metric"}), 400
+
+    if month.lower() == "yearly":
+        period = "annual"
+    else:
+        period = "monthly"
+
+    dataset_key = f"Stay_{category.upper()}_{period}" if metric == "stays" else \
+                  f"LengthOfStay_{category.upper()}_{period}" if metric == "length_of_stay" else \
+                  f"NightsSpend_{category.upper()}_{period}"
+
+    dataset = dataset_group.get(dataset_key)
+    if dataset is None or dataset.empty:
+        print(f"Invalid category or period: {category}, {period}")
+        return jsonify({"error": "Invalid category or period"}), 400
+
+    if isinstance(dataset, pd.DataFrame):
+        dataset = {"data": dataset}  # Wrap in dictionary for compatibility
+
     geojson_data = get_geojson_data(dataset, int(year), month)
     return jsonify(geojson_data)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
