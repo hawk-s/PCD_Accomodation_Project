@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourism Bookings Heatmap</title>
+    <title>Tourism Bookings Color Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <style>
         #map {
@@ -35,10 +35,17 @@
             color: gray;
             margin-top: 10px;
         }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border: 1px solid black;
+            line-height: 1.5em;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
-    <h1>Tourism Bookings Heatmap</h1>
+    <h1>Tourism Bookings Color Map</h1>
 
     <div class="controls">
         <label for="dataset">Choose Dataset:</label>
@@ -79,7 +86,6 @@
             <option value="October">October</option>
             <option value="November">November</option>
             <option value="December">December</option>
-            <option value="Yearly">Yearly</option> <!-- New option -->
         </select>
 
         <button onclick="updateMap()">Update Map</button>
@@ -89,7 +95,6 @@
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
     <script>
         var map = L.map('map').setView([47.5, 14.5], 4);
 
@@ -97,7 +102,7 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        function loadHeatmap(metric = "stays", year = 2021, month = "January", category = "DOM") {
+        function loadColorMap(metric = "stays", year = 2021, month = "January", category = "DOM") {
             document.getElementById('loading').style.display = 'block';
 
             // Fetch data based on user selection
@@ -113,11 +118,14 @@
                         return;
                     }
 
-                    const heatData = data.features.map(feature => [
-                        feature.geometry.coordinates[1], // lat
-                        feature.geometry.coordinates[0], // lon
-                        feature.properties.value // intensity
-                    ]);
+                    const values = data.features.map(feature => feature.properties.value);
+                    const minValue = Math.min(...values);
+                    const maxValue = Math.max(...values);
+
+                    const getColor = (value) => {
+                        const ratio = (value - minValue) / (maxValue - minValue);
+                        return `hsl(${(1 - ratio) * 240}, 100%, 50%)`; // Blue to Red
+                    };
 
                     map.eachLayer(layer => {
                         if (!(layer instanceof L.TileLayer)) {
@@ -125,32 +133,51 @@
                         }
                     });
 
-                    L.heatLayer(heatData, {
-                        radius: 15,
-                        blur: 10,
-                        maxZoom: 7,
-                        gradient: { 0.2: 'blue', 0.4: 'lime', 0.6: 'yellow', 1.0: 'red' }
-                    }).addTo(map);
-
                     data.features.forEach(feature => {
-                        const { coordinates } = feature.geometry;
-                        const { value, region } = feature.properties;
+                        const coords = feature.geometry.coordinates;
+                        const value = feature.properties.value;
+                        const color = getColor(value);
 
-                        L.circleMarker([coordinates[1], coordinates[0]], {
+                        L.circleMarker([coords[1], coords[0]], {
                             radius: 8,
-                            color: 'blue',
-                            fillColor: 'cyan',
-                            fillOpacity: 0.6
+                            color: color,
+                            fillColor: color,
+                            fillOpacity: 0.8
                         })
-                        .bindTooltip(`Region: ${region}<br>Value: ${value}`, { direction: 'top' })
+                        .bindTooltip(`Region: ${feature.properties.region}<br>Value: ${value}`, { direction: 'top' })
                         .addTo(map);
                     });
+
+                    addLegend(minValue, maxValue, getColor);
                 })
                 .catch(error => {
                     document.getElementById('loading').style.display = 'none';
-                    console.error("Error fetching heatmap data:", error);
-                    alert("Failed to load heatmap data. Please try again later.");
+                    console.error("Error fetching data:", error);
+                    alert("Failed to load data. Please try again later.");
                 });
+        }
+
+        function addLegend(min, max, getColor) {
+            const existingLegend = document.querySelector('.legend');
+            if (existingLegend) existingLegend.remove();
+
+            const legend = L.control({ position: 'bottomright' });
+            legend.onAdd = function () {
+                const div = L.DomUtil.create('div', 'legend');
+                div.innerHTML = '<h4>Value Legend</h4>';
+                const steps = 5;
+                const stepSize = (max - min) / steps;
+                for (let i = 0; i <= steps; i++) {
+                    const value = min + i * stepSize;
+                    const color = getColor(value);
+                    div.innerHTML += `<div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background: ${color}; margin-right: 10px;"></div>
+                        ${value.toFixed(2)}
+                    </div>`;
+                }
+                return div;
+            };
+            legend.addTo(map);
         }
 
         function updateMap() {
@@ -158,10 +185,10 @@
             const year = document.getElementById('year').value;
             const month = document.getElementById('month').value;
             const category = document.getElementById('category').value;
-            loadHeatmap(metric, year, month, category);
+            loadColorMap(metric, year, month, category);
         }
 
-        loadHeatmap(); // Initialize the heatmap with default parameters
+        loadColorMap(); // Initialize the map
     </script>
 </body>
 </html>
