@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eurostat Tourism Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Interactive Eurostat Tourism Map</h1>
+    <div id="controls">
+        <label for="metric">Metric:</label>
+        <select id="metric">
+            <option value="stays">Stays</option>
+            <option value="length_of_stay">Length of Stay</option>
+            <option value="nights_spent">Nights Spent</option>
+        </select>
+        
+        <label for="year">Year:</label>
+        <select id="year">
+            <!-- Include a range of years dynamically or manually -->
+            {% for year in range(2018, 2025) %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="month">Month:</label>
+        <select id="month">
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+        </select>
+
+        <button id="updateMap">Update Map</button>
+    </div>
+    
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Fetch data dynamically for years if provided by the backend
+        // Example: fetch("/years").then(response => response.json()).then(data => {
+        //     const yearSelect = document.getElementById("year");
+        //     data.years.forEach(year => {
+        //         const option = document.createElement("option");
+        //         option.value = year;
+        //         option.textContent = year;
+        //         yearSelect.appendChild(option);
+        //     });
+        // });
+
+        // Event listener for the Update Map button
+        document.getElementById("updateMap").addEventListener("click", () => {
+            const metric = document.getElementById("metric").value;
+            const year = document.getElementById("year").value;
+            const month = document.getElementById("month").value;
+
+            // Fetch new data and update the map
+            fetch(`/data/${metric}/${year}/${month}`)
+                .then(response => response.json())
+                .then(geojsonData => {
+                    // Clear the map and load new data (to be implemented in script.js)
+                    updateMap(geojsonData);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

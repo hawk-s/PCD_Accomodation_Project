@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourism Bookings Heatmap</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <style>
+        #map {
+            height: 600px;
+        }
+        h1 {
+            margin: 20px;
+            text-align: center;
+        }
+        .controls {
+            margin: 10px auto;
+            padding: 10px;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            width: 80%;
+            max-width: 800px;
+        }
+        select {
+            width: 200px;
+            margin-right: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        #loading {
+            text-align: center;
+            font-size: 16px;
+            color: gray;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tourism Bookings Heatmap</h1>
+
+    <div class="controls">
+        <label for="dataset">Choose Dataset:</label>
+        <select id="dataset">
+            <option value="stays">Stays</option>
+            <option value="length_of_stay">Length of Stay</option>
+            <option value="nights_spent">Nights Spent</option>
+        </select>
+
+        <label for="year">Choose Year:</label>
+        <select id="year">
+            <option value="2018">2018</option>
+            <option value="2019">2019</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+        </select>
+
+        <label for="month">Choose Month:</label>
+        <select id="month">
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+        </select>
+
+        <button onclick="updateMap()">Update Map</button>
+        <div id="loading" style="display: none;">Loading...</div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script>
+        var map = L.map('map').setView([47.5, 14.5], 4);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        function updateMap() {
+            const metric = document.getElementById('dataset').value;
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            loadHeatmap(metric, year, month);
+        }
+
+        function loadHeatmap(metric = "stays", year = 2021, month = "January") {
+            document.getElementById('loading').style.display = 'block';
+            fetch(`/data/${metric}/${year}/${month}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    if (data.features.length === 0) {
+                        alert("No data available for the selected parameters.");
+                        return;
+                    }
+                    var heatData = data.features.map(function(feature) {
+                        var coords = feature.geometry.coordinates; // [lon, lat]
+                        var value = feature.properties.value;
+                        console.log(`Processed point: Lon: ${coords[0]}, Lat: ${coords[1]}, Value: ${value}`);
+                        return [coords[1], coords[0], value]; // Lat, Lon, Intensity for Leaflet
+                    });
+
+                    map.eachLayer(layer => {
+                        if (!(layer instanceof L.TileLayer)) {
+                            map.removeLayer(layer);
+                        }
+                    });
+                    L.heatLayer(heatData, { radius: 25, blur: 15, maxZoom: 7 }).addTo(map);
+                })
+                .catch(error => {
+                    document.getElementById('loading').style.display = 'none';
+                    console.error("Error fetching heatmap data:", error);
+                    alert("Failed to load heatmap data. Please try again later.");
+                });
+        }
+
+        loadHeatmap(); // Initial heatmap load
+    </script>
+</body>
+</html>
