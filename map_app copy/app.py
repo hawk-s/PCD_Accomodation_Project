@@ -103,6 +103,10 @@ def get_geojson_data(dataset, year, month):
     print(json.dumps(geojson_data, indent=2))  # Debugging output
     return geojson_data
 
+# Load NUTS mapping data
+with open('nuts_mapping.json', 'r', encoding='utf-8') as f:
+    nuts_mapping = json.load(f)
+
 
 # --- ROUTES ---
 @app.route('/')
@@ -178,8 +182,6 @@ def top10_countries_data():
     dataset['month_name'] = dataset['month'].dt.strftime('%B')
     filtered_data = dataset[(dataset['year'] == int(year)) & (dataset['month_name'] == month)]
 
-    # Filter to include only countries
-    
     # Filter to include only countries with 2-character GEO codes for top10_countries_data
     filtered_data = filtered_data[filtered_data['GEO'].str.len() == 2]
 
@@ -187,6 +189,9 @@ def top10_countries_data():
     top_countries = (filtered_data.groupby('GEO')['bookings'].sum()
                     .reset_index()
                     .sort_values(by='bookings', ascending=False).head(10))
+
+    # Replace NUTS codes with country names
+    top_countries['GEO'] = top_countries['GEO'].map(nuts_mapping)
 
     # Convert result to JSON format
     top_countries_list = top_countries.to_dict(orient='records')
@@ -224,8 +229,6 @@ def top10_regions_data():
     dataset['month_name'] = dataset['month'].dt.strftime('%B')
     filtered_data = dataset[(dataset['year'] == int(year)) & (dataset['month_name'] == month)]
 
-    # Filter to exclude countries
-    
     # Filter to include only regions with 4-character GEO codes for top10_regions_data
     filtered_data = filtered_data[filtered_data['GEO'].str.len() == 4]
 
@@ -233,6 +236,9 @@ def top10_regions_data():
     top_regions = (filtered_data.groupby('GEO')['bookings'].sum()
                    .reset_index()
                    .sort_values(by='bookings', ascending=False).head(10))
+
+    # Replace NUTS codes with region names
+    top_regions['GEO'] = top_regions['GEO'].map(nuts_mapping)
 
     # Convert result to JSON format
     top_regions_list = top_regions.to_dict(orient='records')
