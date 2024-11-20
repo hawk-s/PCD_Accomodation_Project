@@ -110,9 +110,12 @@ def get_geojson_data(dataset, year, month):
 
 # --- ROUTES ---
 @app.route('/')
-def index():
-    return render_template('index.html')  # Remove hardcoded geojson_data
+def home():
+    return render_template('home.html')
 
+@app.route('/map')
+def index():
+    return render_template('index.html')
 
 @app.route('/data/<metric>/<year>/<month>/<category>')
 def get_data(metric, year, month, category):
@@ -147,8 +150,80 @@ def get_data(metric, year, month, category):
     geojson_data = get_geojson_data(dataset, int(year), month)
     return jsonify(geojson_data)
 
+# --- Route for Top 10 Visited Regions Page ---
+@app.route('/top10')
+def top10():
+    return render_template('top10.html')
 
+@app.route('/top10/data', methods=['GET'])
+def top10_data():
+    metric = request.args.get('metric', 'stays')
+    year = request.args.get('year', '2022')
+    month = request.args.get('month', 'January')
+    category = request.args.get('category', 'DOM')
 
+    dataset_map = {
+        "stays": stay_data,
+        "length_of_stay": length_of_stay_data,
+        "nights_spent": nights_spend_data
+    }
+    dataset_group = dataset_map.get(metric)
+
+    dataset_key = f"Stay_{category.upper()}_monthly" if metric == "stays" else \
+                  f"LengthOfStay_{category.upper()}_monthly" if metric == "length_of_stay" else \
+                  f"NightsSpend_{category.upper()}_monthly"
+
+    dataset = dataset_group.get(dataset_key)
+    if dataset is None or dataset.empty:
+        return jsonify([])
+
+    # Filter data based on year and month
+    dataset['year'] = dataset['month'].dt.year
+    dataset['month_name'] = dataset['month'].dt.strftime('%B')
+    filtered_data = dataset[(dataset['year'] == int(year)) & (dataset['month_name'] == month)]
+
+    # Group by region and get the top 10 visited regions
+    top_regions = (filtered_data.groupby('GEO')['bookings'].sum()
+                   .sort_values(ascending=False).head(10).reset_index())
+
+    # Convert result to JSON format
+    top_regions_list = top_regions.to_dict(orient='records')
+    return jsonify(top_regions_list)
+
+@app.route('/top10/data/all', methods=['GET'])
+def all_regions_data():
+    metric = request.args.get('metric', 'stays')
+    year = request.args.get('year', '2022')
+    month = request.args.get('month', 'January')
+    category = request.args.get('category', 'DOM')
+
+    dataset_map = {
+        "stays": stay_data,
+        "length_of_stay": length_of_stay_data,
+        "nights_spent": nights_spend_data
+    }
+    dataset_group = dataset_map.get(metric)
+
+    dataset_key = f"Stay_{category.upper()}_monthly" if metric == "stays" else \
+                  f"LengthOfStay_{category.upper()}_monthly" if metric == "length_of_stay" else \
+                  f"NightsSpend_{category.upper()}_monthly"
+
+    dataset = dataset_group.get(dataset_key)
+    if dataset is None or dataset.empty:
+        return jsonify([])
+
+    # Filter data based on year and month
+    dataset['year'] = dataset['month'].dt.year
+    dataset['month_name'] = dataset['month'].dt.strftime('%B')
+    filtered_data = dataset[(dataset['year'] == int(year)) & (dataset['month_name'] == month)]
+
+    # Group by region and get all visited regions sorted by bookings
+    all_regions = (filtered_data.groupby('GEO')['bookings'].sum()
+                   .sort_values(ascending=False).reset_index())
+
+    # Convert result to JSON format
+    all_regions_list = all_regions.to_dict(orient='records')
+    return jsonify(all_regions_list)
 
 if __name__ == '__main__':
     app.run(debug=True)
