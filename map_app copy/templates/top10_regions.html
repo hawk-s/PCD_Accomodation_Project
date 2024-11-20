@@ -59,11 +59,19 @@
         <select id="month">
             <option value="January">January</option>
             <option value="February">February</option>
-            <!-- Add more months here -->
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
         </select>
 
-        <button onclick="loadTop10()">Load Top 10</button>
-        <button onclick="loadAll()">Load All</button>
+        <button onclick="loadTop10Regions()">Load Top 10 Regions</button>
     </div>
 
     <div id="table-container">
@@ -81,13 +89,13 @@
     </div>
 
     <script>
-        function loadTop10() {
+        function loadTop10Regions() {
             const metric = document.getElementById('dataset').value;
             const year = document.getElementById('year').value;
             const month = document.getElementById('month').value;
             const category = document.getElementById('category').value;
 
-            fetch(`/top10/data?metric=${metric}&year=${year}&month=${month}&category=${category}`)
+            fetch(`/top10/regions/data?metric=${metric}&year=${year}&month=${month}&category=${category}`)
                 .then(response => response.json())
                 .then(data => {
                     const tbody = document.getElementById('top10-table').getElementsByTagName('tbody')[0];
@@ -99,29 +107,7 @@
                     });
                 })
                 .catch(error => {
-                    console.error("Error loading top 10 data:", error);
-                });
-        }
-
-        function loadAll() {
-            const metric = document.getElementById('dataset').value;
-            const year = document.getElementById('year').value;
-            const month = document.getElementById('month').value;
-            const category = document.getElementById('category').value;
-
-            fetch(`/top10/data/all?metric=${metric}&year=${year}&month=${month}&category=${category}`)
-                .then(response => response.json())
-                .then(data => {
-                    const tbody = document.getElementById('top10-table').getElementsByTagName('tbody')[0];
-                    tbody.innerHTML = ''; // Clear previous data
-                    data.forEach(region => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `<td>${region.GEO}</td><td>${region.bookings}</td>`;
-                        tbody.appendChild(row);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error loading all data:", error);
+                    console.error("Error loading top 10 regions data:", error);
                 });
         }
     </script>
