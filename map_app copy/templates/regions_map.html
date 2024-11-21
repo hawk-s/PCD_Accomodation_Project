@@ -162,6 +162,14 @@
                         const coords = feature.geometry.coordinates;
                         const value = feature.properties.value;
                         const color = getColor(value);
+                        const regionName = feature.properties.region;
+                        const mappedName = feature.properties.mapped_name ? feature.properties.mapped_name : null;
+
+                        // Construct the tooltip content conditionally
+                        let tooltipContent = `Region name: ${regionName}<br>Value: ${value}`;
+                        if (mappedName) {
+                            tooltipContent += `<br>Alt. Name: ${mappedName}`;
+                        }
 
                         L.circleMarker([coords[1], coords[0]], {
                             radius: 8,
@@ -169,9 +177,7 @@
                             fillColor: color,
                             fillOpacity: 0.8
                         })
-                        .bindTooltip(`Region: ${feature.properties.region}<br>` +
-                                     `Mapped Name: ${feature.properties.mapped_name}<br>` +
-                                     `Value: ${value}`, { direction: 'top' })
+                        .bindTooltip(tooltipContent, { direction: 'top' })
                         .addTo(map);
                     });
 

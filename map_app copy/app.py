@@ -89,18 +89,26 @@ def get_geojson_data(dataset, year, month):
                 lon, lat = transformer.transform(centroid.x, centroid.y)
                 region_name = geo_data['properties'].get('NUTS_NAME', 'Unknown Region')
                 
-                # Add the mapped name from nuts_mapping
+                # Get the mapped name from nuts_mapping
                 nuts_mapped_name = nuts_mapping.get(row["GEO"], "Unknown Name")
 
-                geojson_features.append({
+                # Only add mapped_name if it is different from region_name
+                mapped_name = nuts_mapped_name if nuts_mapped_name != region_name else None
+
+                geojson_feature = {
                     "type": "Feature",
                     "properties": {
                         "region": region_name,
-                        "mapped_name": nuts_mapped_name,
                         "value": row["bookings"]
                     },
                     "geometry": {"type": "Point", "coordinates": [lon, lat]}
-                })
+                }
+
+                if mapped_name:
+                    geojson_feature["properties"]["mapped_name"] = mapped_name
+
+                geojson_features.append(geojson_feature)
+                
         else:
             print(f"No match for GEO: {row['GEO']}")
 
