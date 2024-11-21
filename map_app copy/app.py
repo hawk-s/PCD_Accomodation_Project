@@ -88,10 +88,15 @@ def get_geojson_data(dataset, year, month):
                 centroid = geometry.centroid
                 lon, lat = transformer.transform(centroid.x, centroid.y)
                 region_name = geo_data['properties'].get('NUTS_NAME', 'Unknown Region')
+                
+                # Add the mapped name from nuts_mapping
+                nuts_mapped_name = nuts_mapping.get(row["GEO"], "Unknown Name")
+
                 geojson_features.append({
                     "type": "Feature",
                     "properties": {
                         "region": region_name,
+                        "mapped_name": nuts_mapped_name,
                         "value": row["bookings"]
                     },
                     "geometry": {"type": "Point", "coordinates": [lon, lat]}
