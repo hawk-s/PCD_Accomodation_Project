@@ -6,45 +6,47 @@
     <title>Welcome to Tourism Insights</title>
     <style>
         body {
-            background-color: #f0f0f0;
-            font-family: 'Courier New', Courier, monospace;
+            background-color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
             color: #000;
             text-align: center;
-            padding-top: 50px;
+            padding-top: 60px;
         }
         .container {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
-            border: 2px solid #000;
-            padding: 20px;
+            border: 3px solid #000;
+            padding: 25px;
             background-color: #fff;
-            box-shadow: 5px 5px #d3d3d3;
+            box-shadow: 8px 8px #999;
         }
         h1 {
-            font-size: 2.5em;
-            color: #333;
+            font-size: 3em;
+            color: #111;
+            letter-spacing: 1px;
         }
         .nav {
-            margin: 20px 0;
+            margin: 30px 0;
         }
         .nav a {
             display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
+            margin: 15px;
+            padding: 12px 25px;
             text-decoration: none;
             font-weight: bold;
-            color: #fff;
-            background-color: #333;
-            border: 2px solid #000;
-            box-shadow: 3px 3px #aaa;
+            color: #000;
+            background-color: #ccc;
+            border: 3px solid #000;
+            box-shadow: 5px 5px #888;
+            transition: background-color 0.3s;
         }
         .nav a:hover {
-            background-color: #555;
+            background-color: #aaa;
         }
         footer {
-            margin-top: 50px;
-            font-size: 0.9em;
-            color: #666;
+            margin-top: 60px;
+            font-size: 1em;
+            color: #333;
         }
     </style>
 </head>
@@ -55,7 +57,8 @@
         
         <div class="nav">
             <a href="/">Home</a>
-            <a href="/map">Explore Map</a>
+            <a href="/map/countries">Country-Level Tourism Bookings Map</a>
+            <a href="/map/regions">Region-Level Tourism Bookings Map</a>
             <a href="/top10/countries">Top 10 Visited Countries</a>
             <a href="/top10/regions">Top 10 Visited Regions</a>
         </div>
@@ -65,3 +68,4 @@
         <p>&copy; 1990s Tourism Insights. All Rights Reserved.</p>
     </footer>
 </body>
+</html>

@@ -3,50 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourism Bookings Color Map</title>
+    <title>Country-Level Tourism Bookings Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <style>
-        #map {
-            height: 600px;
+        body {
+            background-color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            text-align: center;
+            padding-top: 40px;
         }
         h1 {
-            margin: 20px;
-            text-align: center;
+            margin: 30px;
+            font-size: 2.8em;
+            letter-spacing: 1px;
+            color: #111;
         }
         .controls {
-            margin: 10px auto;
-            padding: 10px;
-            background-color: white;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            margin: 15px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 8px 8px #888;
+            border: 3px solid #000;
             border-radius: 5px;
             width: 80%;
-            max-width: 800px;
+            max-width: 700px;
         }
         select {
-            width: 200px;
-            margin-right: 10px;
+            width: 220px;
+            margin-right: 15px;
+            padding: 5px;
+            border: 2px solid #000;
+            box-shadow: 4px 4px #777;
         }
         label {
             font-weight: bold;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-weight: bold;
+            color: #000;
+            background-color: #ccc;
+            border: 3px solid #000;
+            box-shadow: 5px 5px #777;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #aaa;
         }
         #loading {
             text-align: center;
             font-size: 16px;
             color: gray;
-            margin-top: 10px;
+            margin-top: 15px;
+        }
+        #map {
+            height: 600px;
+            margin-top: 20px;
         }
         .legend {
-            background-color: white;
+            background-color: #fff;
             padding: 10px;
-            border: 1px solid black;
+            border: 3px solid #000;
             line-height: 1.5em;
-            font-size: 12px;
+            font-size: 13px;
+            box-shadow: 5px 5px #777;
         }
     </style>
 </head>
 <body>
-    <h1>Tourism Bookings Color Map</h1>
-
+    <h1>Country-Level Tourism Bookings Map</h1>
     <div class="controls">
         <label for="dataset">Choose Dataset:</label>
         <select id="dataset">
@@ -91,9 +118,7 @@
         <button onclick="updateMap()">Update Map</button>
         <div id="loading" style="display: none;">Loading...</div>
     </div>
-
     <div id="map"></div>
-
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([47.5, 14.5], 4);
@@ -106,7 +131,7 @@
             document.getElementById('loading').style.display = 'block';
 
             // Fetch data based on user selection
-            fetch(`/data/${metric}/${year}/${month}/${category}`)
+            fetch(`/data/countries/${metric}/${year}/${month}/${category}`)
                 .then(response => {
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     return response.json();

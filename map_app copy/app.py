@@ -76,7 +76,7 @@ def get_geojson_data(dataset, year, month):
     else:  # Handle monthly data
         filtered = combined[(combined['year'] == year) & (combined['month_name'] == month)]
 
-    filtered = filtered[filtered["GEO"].str.len() > 2]
+    #filtered = filtered[filtered["GEO"].str.len() > 2]
     filtered = filtered[~filtered["GEO"].isin(["EU27_2020"])]
 
     geojson_features = []
@@ -113,12 +113,18 @@ with open('nuts_mapping.json', 'r', encoding='utf-8') as f:
 def home():
     return render_template('home.html')
 
-@app.route('/map')
-def index():
-    return render_template('index.html')
+# Route to render the country-level map page
+@app.route('/map/countries')
+def countries_map():
+    return render_template('countries_map.html')
 
-@app.route('/data/<metric>/<year>/<month>/<category>')
-def get_data(metric, year, month, category):
+# Route to render the region-level map page
+@app.route('/map/regions')
+def regions_map():
+    return render_template('regions_map.html')
+
+@app.route('/data/countries/<metric>/<year>/<month>/<category>')
+def get_countries_data(metric, year, month, category):
     dataset_map = {
         "stays": stay_data,
         "length_of_stay": length_of_stay_data,
@@ -127,7 +133,6 @@ def get_data(metric, year, month, category):
     dataset_group = dataset_map.get(metric)
 
     if not dataset_group:
-        print(f"Invalid metric: {metric}")
         return jsonify({"error": "Invalid metric"}), 400
 
     if month.lower() == "yearly":
@@ -141,11 +146,42 @@ def get_data(metric, year, month, category):
 
     dataset = dataset_group.get(dataset_key)
     if dataset is None or dataset.empty:
-        print(f"Invalid category or period: {category}, {period}")
         return jsonify({"error": "Invalid category or period"}), 400
 
-    if isinstance(dataset, pd.DataFrame):
-        dataset = {"data": dataset}  # Wrap in dictionary for compatibility
+    # Filter to include only countries with 2-character GEO codes
+    dataset = dataset[dataset['GEO'].str.len() == 2]
+
+    geojson_data = get_geojson_data(dataset, int(year), month)
+    return jsonify(geojson_data)
+
+
+@app.route('/data/regions/<metric>/<year>/<month>/<category>')
+def get_regions_data(metric, year, month, category):
+    dataset_map = {
+        "stays": stay_data,
+        "length_of_stay": length_of_stay_data,
+        "nights_spent": nights_spend_data
+    }
+    dataset_group = dataset_map.get(metric)
+
+    if not dataset_group:
+        return jsonify({"error": "Invalid metric"}), 400
+
+    if month.lower() == "yearly":
+        period = "annual"
+    else:
+        period = "monthly"
+
+    dataset_key = f"Stay_{category.upper()}_{period}" if metric == "stays" else \
+                  f"LengthOfStay_{category.upper()}_{period}" if metric == "length_of_stay" else \
+                  f"NightsSpend_{category.upper()}_{period}"
+
+    dataset = dataset_group.get(dataset_key)
+    if dataset is None or dataset.empty:
+        return jsonify({"error": "Invalid category or period"}), 400
+
+    # Filter to include only regions with 4-character GEO codes
+    dataset = dataset[dataset['GEO'].str.len() == 4]
 
     geojson_data = get_geojson_data(dataset, int(year), month)
     return jsonify(geojson_data)

@@ -6,11 +6,60 @@
     <title>Top 10 Visited Countries</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <style>
+        body {
+            background-color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            text-align: center;
+            padding-top: 40px;
+        }
+        h1 {
+            margin: 30px;
+            font-size: 2.8em;
+            letter-spacing: 1px;
+            color: #111;
+        }
+        .controls {
+            margin: 15px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 8px 8px #888;
+            border: 3px solid #000;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 700px;
+        }
+        select {
+            width: 220px;
+            margin-right: 15px;
+            padding: 5px;
+            border: 2px solid #000;
+            box-shadow: 4px 4px #777;
+        }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-weight: bold;
+            color: #000;
+            background-color: #ccc;
+            border: 3px solid #000;
+            box-shadow: 5px 5px #777;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #aaa;
+        }
         #table-container {
             margin: 20px auto;
-            padding: 10px;
+            padding: 20px;
             width: 80%;
             max-width: 800px;
+            background-color: #fff;
+            border: 3px solid #000;
+            box-shadow: 8px 8px #888;
         }
         table {
             width: 100%;
@@ -18,12 +67,12 @@
             margin-bottom: 20px;
         }
         th, td {
-            padding: 10px;
+            padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 2px solid #000;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #ccc;
         }
     </style>
 </head>
