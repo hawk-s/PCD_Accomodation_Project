@@ -166,19 +166,34 @@
                         const mappedName = feature.properties.mapped_name ? feature.properties.mapped_name : null;
 
                         // Construct the tooltip content conditionally
-                        let tooltipContent = `Region name: ${regionName}<br>Value: ${value}`;
+                        let content = `Region: ${regionName}<br>Value: ${value}`;
                         if (mappedName) {
-                            tooltipContent += `<br>Alt. Name: ${mappedName}`;
+                            content += `<br>Mapped Name: ${mappedName}`;
                         }
 
-                        L.circleMarker([coords[1], coords[0]], {
+                        // Create a marker with hover tooltip
+                        const marker = L.circleMarker([coords[1], coords[0]], {
                             radius: 8,
                             color: color,
                             fillColor: color,
                             fillOpacity: 0.8
-                        })
-                        .bindTooltip(tooltipContent, { direction: 'top' })
-                        .addTo(map);
+                        });
+
+                        // Bind a tooltip that appears on hover
+                        marker.bindTooltip(content, { direction: 'top' });
+
+                        // Add a click event to create a new popup that stays open for each click
+                        marker.on('click', () => {
+                            const popup = L.popup({
+                                autoClose: false, // Ensure popups don't automatically close when opening a new one
+                                closeOnClick: false // Ensure clicking the map won't close the popup
+                            })
+                            .setLatLng([coords[1], coords[0]])
+                            .setContent(content)
+                            .openOn(map);
+                        });
+
+                        marker.addTo(map);
                     });
 
                     addLegend(minValue, maxValue, getColor);
