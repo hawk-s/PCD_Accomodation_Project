@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Stats</title>
+    <style>
+        body {
+            background-color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 25px;
+            background-color: #fff;
+            border: 3px solid #000;
+            box-shadow: 8px 8px #999;
+        }
+        h1, h3 {
+            font-size: 2.5em;
+            color: #111;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .nav {
+            margin: 30px 0;
+            text-align: center;
+        }
+        .nav label, .nav select, .nav button {
+            margin: 10px;
+            padding: 10px 15px;
+            font-size: 1em;
+            border: 2px solid #000;
+            background-color: #ccc;
+            transition: background-color 0.3s;
+        }
+        .nav button {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .nav select:hover, .nav button:hover {
+            background-color: #aaa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 5px 5px #888;
+        }
+        table, th, td {
+            border: 2px solid #000;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f4f4f9;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Country Stats</h1>
+        <form method="POST">
+            <div class="nav">
+                <label for="country">Select Country:</label>
+                <select name="country" id="country">
+                    {% for country in countries %}
+                        <option value="{{ country }}" {% if country == selected_country %}selected{% endif %}>{{ country }}</option>
+                    {% endfor %}
+                </select>
+                <label for="year">Select Year:</label>
+                <select name="year" id="year">
+                    {% for year in years %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Update</button>
+            </div>
+        </form>
+        
+        <h3>Country Level Statistics: {{ selected_country }} (Year: {{ selected_year }})</h3>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Total Stays:</td>
+                <td>{{ country_level_stats.total_stays }}</td>
+            </tr>
+            <tr>
+                <td>Total Stays in Selected Year:</td>
+                <td>{{ country_level_stats.total_stays_in_selected_year }}</td>
+            </tr>
+            <tr>
+                <td>Percentage of Foreign Visitors:</td>
+                <td>{{ country_level_stats.percentage_foreign_visitors }}%</td>
+            </tr>
+            <tr>
+                <td><strong>Most Popular Month:</strong></td>
+                <td>{{ country_level_stats.most_popular_month }}</td>
+            </tr>
+            <tr>
+                <td><strong>Average Length of Stay (Domestic Visitors):</strong></td>
+                <td>{{ country_level_stats.avg_length_of_stays['DOM'] }}</td>
+            </tr>
+            <tr>
+                <td><strong>Average Length of Stay (Foreign Visitors):</strong></td>
+                <td>{{ country_level_stats.avg_length_of_stays['FOR'] }}</td>
+            </tr>
+            <tr>
+                <td><strong>Average Length of Stay (Total):</strong></td>
+                <td>{{ country_level_stats.avg_length_of_stays['total'] }}</td>
+            </tr>
+            <tr>
+                <td><strong>Subregion with Highest Average Length of Stay:</strong></td>
+                <td>{{ country_level_stats.subregion_with_highest_avg_length }}</td>
+            </tr>
+        </table>
+        {% if stays_heatmap %}
+            <h3>Subregions Monthly Stays</h3>
+            <img src="data:image/png;base64,{{ stays_heatmap }}" alt="Monthly Stays Heatmap">
+        {% endif %}
+        <!-- Display Line Chart for Nights Spent by Top 3 Subregions -->
+        {% if nights_spent_line_chart %}
+            <h3 class="mt-4 section-spacing">Nights Spent by Top 3 Subregions</h3>
+            <img src="data:image/png;base64,{{ nights_spent_line_chart }}" alt="Nights Spent by Top 3 Subregions">
+        {% endif %}
+    </div>
+</body>
+</html>

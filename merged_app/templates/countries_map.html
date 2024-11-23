@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country-Level Tourism Bookings Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <style>
+        body {
+            background-color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            text-align: center;
+            padding-top: 10px; /* Reduced from 40px to 10px */
+        }
+        h1 {
+            margin: 10px; /* Reduced from 30px to 10px */
+            font-size: 2.8em;
+            letter-spacing: 1px;
+            color: #111;
+        }
+        .controls {
+            margin: 10px auto; /* Reduced from 15px to 10px */
+            padding: 15px; /* Reduced from 20px to 15px */
+            background-color: #fff;
+            box-shadow: 8px 8px #888;
+            border: 3px solid #000;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 700px;
+        }
+        select {
+            width: 220px;
+            margin-right: 15px;
+            padding: 5px;
+            border: 2px solid #000;
+            box-shadow: 4px 4px #777;
+        }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-weight: bold;
+            color: #000;
+            background-color: #ccc;
+            border: 3px solid #000;
+            box-shadow: 5px 5px #777;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #aaa;
+        }
+        #loading {
+            text-align: center;
+            font-size: 16px;
+            color: gray;
+            margin-top: 15px;
+        }
+        #map {
+            height: 600px;
+            margin-top: 20px;
+        }
+        .legend {
+            background-color: #fff;
+            padding: 10px;
+            border: 3px solid #000;
+            line-height: 1.5em;
+            font-size: 13px;
+            box-shadow: 5px 5px #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Country-Level Tourism Bookings Map</h1>
+    <div class="controls">
+        <label for="dataset">Choose Dataset:</label>
+        <select id="dataset">
+            <option value="stays">Stays</option>
+            <option value="length_of_stay">Length of Stay</option>
+            <option value="nights_spent">Nights Spent</option>
+        </select>
+
+        <label for="category">Choose Category:</label>
+        <select id="category">
+            <option value="DOM">Domestic</option>
+            <option value="FOR">Foreign</option>
+            <option value="TOTAL">Total</option>
+        </select>
+
+        <label for="year">Choose Year:</label>
+        <select id="year">
+            <option value="2018">2018</option>
+            <option value="2019">2019</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+        </select>
+
+        <label for="month">Choose Month:</label>
+        <select id="month">
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+        </select>
+
+        <button onclick="updateMap()">Update Map</button>
+        <div id="loading" style="display: none;">Loading...</div>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([47.5, 14.5], 4);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        function loadColorMap(metric = "stays", year = 2021, month = "January", category = "DOM") {
+            document.getElementById('loading').style.display = 'block';
+
+            // Fetch data based on user selection
+            fetch(`/data/countries/${metric}/${year}/${month}/${category}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    if (data.features.length === 0) {
+                        alert("No data available for the selected parameters.");
+                        return;
+                    }
+
+                    const values = data.features.map(feature => feature.properties.value);
+                    const minValue = Math.min(...values);
+                    const maxValue = Math.max(...values);
+
+                    const getColor = (value) => {
+                        const ratio = (value - minValue) / (maxValue - minValue);
+                        return `hsl(${(1 - ratio) * 240}, 100%, 50%)`; // Blue to Red
+                    };
+
+                    map.eachLayer(layer => {
+                        if (!(layer instanceof L.TileLayer)) {
+                            map.removeLayer(layer);
+                        }
+                    });
+
+                    data.features.forEach(feature => {
+                        const coords = feature.geometry.coordinates;
+                        const value = feature.properties.value;
+                        const color = getColor(value);
+                        const regionName = feature.properties.region;
+                        const mappedName = feature.properties.mapped_name ? feature.properties.mapped_name : null;
+
+                        // Construct the tooltip content conditionally
+                        let content = `Region: ${regionName}<br>Value: ${value}`;
+                        if (mappedName) {
+                            content += `<br>Mapped Name: ${mappedName}`;
+                        }
+
+                        // Create a marker with hover tooltip
+                        const marker = L.circleMarker([coords[1], coords[0]], {
+                            radius: 8,
+                            color: color,
+                            fillColor: color,
+                            fillOpacity: 0.8
+                        });
+
+                        // Bind a tooltip that appears on hover
+                        marker.bindTooltip(content, { direction: 'top' });
+
+                        // Add a click event to create a new popup that stays open for each click
+                        marker.on('click', () => {
+                            const popup = L.popup({
+                                autoClose: false, // Ensure popups don't automatically close when opening a new one
+                                closeOnClick: false // Ensure clicking the map won't close the popup
+                            })
+                            .setLatLng([coords[1], coords[0]])
+                            .setContent(content)
+                            .openOn(map);
+                        });
+
+                        marker.addTo(map);
+                    });
+
+                    addLegend(minValue, maxValue, getColor);
+                })
+                .catch(error => {
+                    document.getElementById('loading').style.display = 'none';
+                    console.error("Error fetching data:", error);
+                    alert("Failed to load data. Please try again later.");
+                });
+        }
+
+        function addLegend(min, max, getColor) {
+            const existingLegend = document.querySelector('.legend');
+            if (existingLegend) existingLegend.remove();
+
+            const legend = L.control({ position: 'bottomright' });
+            legend.onAdd = function () {
+                const div = L.DomUtil.create('div', 'legend');
+                div.innerHTML = '<h4>Value Legend</h4>';
+                const steps = 5;
+                const stepSize = (max - min) / steps;
+                for (let i = 0; i <= steps; i++) {
+                    const value = min + i * stepSize;
+                    const color = getColor(value);
+                    div.innerHTML += `<div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background: ${color}; margin-right: 10px;"></div>
+                        ${value.toFixed(2)}
+                    </div>`;
+                }
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        function updateMap() {
+            const metric = document.getElementById('dataset').value;
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            const category = document.getElementById('category').value;
+            loadColorMap(metric, year, month, category);
+        }
+
+        loadColorMap(); // Initialize the map
+    </script>
+</body>
+</html>

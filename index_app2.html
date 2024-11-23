@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>Country Stats</title>
+    <style>
+        /* General body styling */
+        body {
+            margin: 0;  /* Remove default margin */
+            padding: 0; /* Remove default padding */
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;  /* Light background for the whole page */
+        }
+    
+        /* Fix the navbar to the top with no padding */
+        .navbar {
+            padding-left: 0; /* Remove left padding */
+            padding-right: 0; /* Remove right padding */
+        }
+        .navbar-brand {
+            padding-left: 20px;  /* Add padding to the left */
+        }
+    
+        .navbar .container-fluid {
+            padding-left: 0; /* Ensure no padding on the container */
+            padding-right: 0; /* Ensure no padding on the container */
+        }
+    
+        /* Make the navbar sticky at the top */
+        .navbar.fixed-top {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+    
+        /* Add padding for content to prevent overlap with navbar */
+        body {
+            padding-top: 80px;  /* Adjust based on navbar height */
+        }
+        /* Styling for the container */
+        .container {
+            max-width: 97%;  /* Increase container width to make it more spacious */
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+        /* Table styling */
+        .stats-table {
+            width: 100%;  /* Full width of the container */
+            margin: 20px 0;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+    
+        .stats-table th {
+            background-color: #3498db;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+    
+        .stats-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        /* Make the first column narrower */
+        .stats-table td:first-child {
+            width: 40%;  /* Reduce the width of the first column */
+        }
+        /* Remove bold styling from the first column */
+        .stats-table td:first-child {
+            font-weight: normal; /* Remove bold */
+        }
+        /* Adjust the width of the second column */
+        .stats-table td:nth-child(2) {
+            width: 40%; /* Reduce the width of the second column */
+        }
+        .stats-table tr:hover {
+            background-color: #f9f9f9;
+        }
+    
+        .stats-table tr:nth-child(even) {
+            background-color: #f4f4f9;
+        }
+        .stats-table td:nth-child(2) {
+            color: #16a085;
+            font-size: 1.1em;
+        }
+        /* Heatmap image styling */
+        img {
+            max-width: 100%;
+            max-height: 500px;
+            margin: 10px auto;
+            display: block;
+        }
+        /* Adjust spacing between sections */
+        .section-spacing {
+            margin-top: 30px;  /* Add space between sections */
+        }
+        /* Adjust width of the dropdown menus */
+        .select-wrapper {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px; /* Space between the select fields */
+            width: 100%; /* Ensure the container takes up the full available width */
+        }
+        .form-select {
+            width: auto;
+            max-width: 1000px;  /* Ensure they don't become too thin */
+        }
+         /* Make labels appear to the left of the selection fields */
+         .select-wrapper .mb-3 {
+            display: flex;
+            flex-direction: row;  /* Align label and input horizontally */
+            align-items: center;
+            gap: 10px;  /* Space between label and field */
+        }
+        .select-wrapper .form-label {
+            flex: 0 0 120px; /* Set label width */
+            text-align: right; /* Align label to the right */
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Data Analytics</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav ml-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Historic Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Predictive Models</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Main content -->
+    <div class="container">
+        
+        <form method="POST">
+            <div class="select-wrapper">
+                <div class="mb-3">
+                    <label for="country" class="form-label">Select Country:</label>
+                    <select name="country" id="country" class="form-select">
+                        {% for country in countries %}
+                            <option value="{{ country }}" {% if country == selected_country %}selected{% endif %}>{{ country }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="year" class="form-label">Select Year:</label>
+                    <select name="year" id="year" class="form-select">
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+        
+        <!-- Country Level Statistics -->
+        <h3 class="mt-4 section-spacing">Country Level Statistics: {{ selected_country }} (Year: {{ selected_year }})</h3>
+        <table class="stats-table">
+            <tr>
+                <td><strong>Total Stays:</strong></td>
+                <td>{{ country_level_stats.total_stays }}</td>
+            </tr>
+            <tr>
+                <td><strong>Total Stays in Selected Year:</strong></td>
+                <td>{{ country_level_stats.total_stays_in_selected_year }}</td>
+            </tr>
+            <tr>
+                <td><strong>Percentage of Foreign Visitors:</strong></td>
+                <td>{{ country_level_stats.percentage_foreign_visitors }}%</td>
+            </tr>
+            <tr>
+                <td><strong>Most Popular Month:</strong></td>
+                <td>{{ country_level_stats.most_popular_month }}</td>
+            </tr>
+            <tr>
+                <td><strong>Average Length of Stay (Domestic Visitors):</strong></td>
+                <td>{{ country_level_stats.avg_length_of_stays['DOM'] }}</td>
+            </tr>
+            <tr>
+                <td><strong>Average Length of Stay (Foreign Visitors):</strong></td>
+                <td>{{ country_level_stats.avg_length_of_stays['FOR'] }}</td>
+            </tr>
+            <tr>
+                <td><strong>Average Length of Stay (Total):</strong></td>
+                <td>{{ country_level_stats.avg_length_of_stays['total'] }}</td>
+            </tr>
+            <tr>
+                <td><strong>Subregion with Highest Average Length of Stay:</strong></td>
+                <td>{{ country_level_stats.subregion_with_highest_avg_length }}</td>
+            </tr>
+        </table>
+        <!-- Display Heatmap for Stays per Month -->
+        {% if stays_heatmap %}
+            <h3 class="mt-4 section-spacing">Subregions Monthly Stays</h3>
+            <img src="data:image/png;base64,{{ stays_heatmap }}" alt="Monthly Stays Heatmap">
+        {% endif %}
+        <!-- Display Line Chart for Nights Spent by Top 3 Subregions -->
+        {% if nights_spent_line_chart %}
+            <h3 class="mt-4 section-spacing">Nights Spent by Top 3 Subregions</h3>
+            <img src="data:image/png;base64,{{ nights_spent_line_chart }}" alt="Nights Spent by Top 3 Subregions">
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Model Evaluation Results</h1>
+        <img src="{{ plot_path }}" alt="Results Plot" class="results-plot">
+        
+        <h2>Cross-Validation Results</h2>
+        <div class="results-table">
+            {{ results | safe }}
+        </div>
+        
+        <h2>Best Model: {{ best_model }}</h2>
+        <h3>Test Set Performance</h3>
+        <ul>
+            <li>R²: {{ test_performance['R²'] }}</li>
+            <li>MAE: {{ test_performance['MAE'] }}</li>
+            <li>RMSE: {{ test_performance['RMSE'] }}</li>
+            <li>MAPE: {{ test_performance['MAPE'] }}</li>
+        </ul>
+        
+        <a href="/analysis" class="btn">Run Again</a>
+    </div>
+</body>
+</html>

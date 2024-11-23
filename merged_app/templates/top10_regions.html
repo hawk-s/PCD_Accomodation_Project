@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 10 Visited Regions</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <style>
+        body {
+            background-color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            text-align: center;
+            padding-top: 40px;
+        }
+        h1 {
+            margin: 30px;
+            font-size: 2.8em;
+            letter-spacing: 1px;
+            color: #111;
+        }
+        .controls {
+            margin: 15px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 8px 8px #888;
+            border: 3px solid #000;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 700px;
+        }
+        select {
+            width: 220px;
+            margin-right: 15px;
+            padding: 5px;
+            border: 2px solid #000;
+            box-shadow: 4px 4px #777;
+        }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-weight: bold;
+            color: #000;
+            background-color: #ccc;
+            border: 3px solid #000;
+            box-shadow: 5px 5px #777;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #aaa;
+        }
+        #table-container {
+            margin: 20px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            background-color: #fff;
+            border: 3px solid #000;
+            box-shadow: 8px 8px #888;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #000;
+        }
+        th {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Top 10 Visited Regions</h1>
+
+    <div class="controls">
+        <label for="dataset">Choose Dataset:</label>
+        <select id="dataset">
+            <option value="stays">Stays</option>
+            <option value="length_of_stay">Length of Stay</option>
+            <option value="nights_spent">Nights Spent</option>
+        </select>
+
+        <label for="category">Choose Category:</label>
+        <select id="category">
+            <option value="DOM">Domestic</option>
+            <option value="FOR">Foreign</option>
+            <option value="TOTAL">Total</option>
+        </select>
+
+        <label for="year">Choose Year:</label>
+        <select id="year">
+            <option value="2018">2018</option>
+            <option value="2019">2019</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+        </select>
+
+        <label for="month">Choose Month:</label>
+        <select id="month">
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+        </select>
+
+        <button onclick="loadTop10Regions()">Load Top 10 Regions</button>
+    </div>
+
+    <div id="table-container">
+        <table id="top10-table">
+            <thead>
+                <tr>
+                    <th>Region</th>
+                    <th>Bookings</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be inserted dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadTop10Regions() {
+            const metric = document.getElementById('dataset').value;
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            const category = document.getElementById('category').value;
+
+            fetch(`/top10/regions/data?metric=${metric}&year=${year}&month=${month}&category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('top10-table').getElementsByTagName('tbody')[0];
+                    tbody.innerHTML = ''; // Clear previous data
+                    data.forEach(region => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${region.GEO}</td><td>${region.bookings}</td>`;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error loading top 10 regions data:", error);
+                });
+        }
+    </script>
+</body>
+</html>
