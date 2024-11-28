@@ -193,7 +193,7 @@ def get_regions_data(metric, year, month, category):
     if dataset is None or dataset.empty:
         return jsonify({"error": "Invalid category or period"}), 400
 
-    # Filter to include only regions with 4-character GEO codes
+    #filter to include only regions with 4-character GEO codes:
     dataset = dataset[dataset['GEO'].str.len() == 4]
 
     geojson_data = get_geojson_data(dataset, int(year), month)
